@@ -1,50 +1,25 @@
 require('./config/config');
 const express = require('express');
-const app = express();
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const app = express();
 const port = process.env.PORT;
+
+
+// Cargando routes
+app.use(require('./routes/usuario'));
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/usuario', (req, res) => {
-    res.status(200).send({
-        mensaje: 'get usuario'
-    });
-});
-
-app.post('/usuario', (req, res) => {
-
-    const body = req.body;
-
-    if (body.nombre === undefined) {
-        res.status(400).send({
-            ok: false,
-            mensaje: 'El nombre es necesario'
-        });
-    } else {
-        res.status(200).send({
-            usuario: body
-        });
-    }
 
 
-});
+mongoose.connect('mongodb://localhost:27017/cafe', (err, res) => {
 
-app.put('/usuario/:id', (req, res) => {
+    if (err) throw err;
 
-    let id = req.params.id;
-
-    res.status(200).send({
-        id
-    });
-});
-
-app.delete('/usuario/:id', (req, res) => {
-    res.status(200).send({
-        mensaje: 'delete usuario'
-    });
+    console.log('Conexion a la base de datos exitosamente');
 });
 
 app.listen(port, () => {
