@@ -6,13 +6,13 @@ const app = express();
 const port = process.env.PORT;
 
 
-// Cargando routes
-app.use(require('./routes/usuario'));
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Cargando routes
+app.use(require('./routes/usuario'));
 
 
 mongoose.connect('mongodb://localhost:27017/cafe', (err, res) => {
