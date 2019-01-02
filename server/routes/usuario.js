@@ -1,13 +1,38 @@
 const express = require('express');
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
+const _ = require('underscore');
 const app = express();
 
 
 app.get('/usuario', (req, res) => {
-    res.status(200).send({
-        mensaje: 'get usuario LOCAL'
-    });
+
+    let desde = req.query.desde || 0;
+    desde = Number(desde);
+
+    let limite = req.query.limite || 5;
+    limite = Number(limite);
+
+    Usuario.find({}, 'nombre email role estado google img')
+        .skip(desde)
+        .limit(limite)
+        .exec((err, usuario) => {
+            if (err) {
+                return res.status(400).send({
+                    ok: false,
+                    err
+                });
+            }
+
+            Usuario.count({}, (err, cantidad) => {
+                res.status(200).send({
+                    ok: true,
+                    usuario,
+                    cantidad
+                });
+            });
+        });
+
 });
 
 app.post('/usuario', (req, res) => {
@@ -43,15 +68,48 @@ app.post('/usuario', (req, res) => {
 app.put('/usuario/:id', (req, res) => {
 
     let id = req.params.id;
+    let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
 
-    res.status(200).send({
-        id
+    Usuario.findOneAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
+        if (err) {
+            return res.status(400).send({
+                ok: false,
+                err
+            });
+        }
+
+        res.status(200).send({
+            ok: true,
+            usuario: usuarioDB
+        });
     });
 });
 
 app.delete('/usuario/:id', (req, res) => {
-    res.status(200).send({
-        mensaje: 'delete usuario'
+
+    let id = req.params.id;
+
+    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+        if (err) {
+            return res.status(400).send({
+                ok: false,
+                err
+            });
+        }
+
+        if (!usuarioBorrado) {
+            return res.status(400).send({
+                ok: false,
+                err: {
+                    message: 'Usuario no encontrado'
+                }
+            });
+        }
+
+        res.status(200).send({
+            ok: true,
+            usuario: usuarioBorrado
+        });
     });
 });
 
