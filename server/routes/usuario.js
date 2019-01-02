@@ -13,7 +13,7 @@ app.get('/usuario', (req, res) => {
     let limite = req.query.limite || 5;
     limite = Number(limite);
 
-    Usuario.find({}, 'nombre email role estado google img')
+    Usuario.find({ estado: true }, 'nombre email role estado google img')
         .skip(desde)
         .limit(limite)
         .exec((err, usuario) => {
@@ -24,7 +24,7 @@ app.get('/usuario', (req, res) => {
                 });
             }
 
-            Usuario.count({}, (err, cantidad) => {
+            Usuario.count({ estado: true }, (err, cantidad) => {
                 res.status(200).send({
                     ok: true,
                     usuario,
@@ -70,7 +70,7 @@ app.put('/usuario/:id', (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
 
-    Usuario.findOneAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
+    Usuario.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
         if (err) {
             return res.status(400).send({
                 ok: false,
@@ -89,7 +89,11 @@ app.delete('/usuario/:id', (req, res) => {
 
     let id = req.params.id;
 
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    const cambiaEstado = {
+        estado: false
+    };
+
+    Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true }, (err, usuarioBorrado) => {
         if (err) {
             return res.status(400).send({
                 ok: false,
@@ -97,20 +101,36 @@ app.delete('/usuario/:id', (req, res) => {
             });
         }
 
-        if (!usuarioBorrado) {
-            return res.status(400).send({
-                ok: false,
-                err: {
-                    message: 'Usuario no encontrado'
-                }
-            });
-        }
-
         res.status(200).send({
             ok: true,
             usuario: usuarioBorrado
         });
+
+        res.status
     });
+
+    // Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    //     if (err) {
+    //         return res.status(400).send({
+    //             ok: false,
+    //             err
+    //         });
+    //     }
+
+    //     if (!usuarioBorrado) {
+    //         return res.status(400).send({
+    //             ok: false,
+    //             err: {
+    //                 message: 'Usuario no encontrado'
+    //             }
+    //         });
+    //     }
+
+    //     res.status(200).send({
+    //         ok: true,
+    //         usuario: usuarioBorrado
+    //     });
+    // });
 });
 
 module.exports = app;
